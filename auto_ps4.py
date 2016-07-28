@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
         btnO = joystick.get_button( btnOPlace )
         joystick_count = pygame.joystick.get_count()
-        if btnO == 1 || joystick_count < 1:
+        if btnO == 1 | joystick_count < 1:
             #O pressed or connection lost QUIT
             running = False
 
