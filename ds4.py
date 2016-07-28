@@ -1,4 +1,5 @@
 import pygame
+import RPi.GPIO as GPIO
 
 # Define some colors
 BLACK    = (   0,   0,   0)
@@ -49,8 +50,22 @@ pygame.joystick.init()
 # Get ready to print
 textPrint = TextPrint()
 
+################NUESTRO CODIGO
+GPIO.setmode(GPIO.BOARD)
+    
+GPIO.setup(15, GPIO.OUT)
+motorR = GPIO.PWM(15, 60)
+motorR.start(0)
+
+GPIO.setup(13, GPIO.OUT)
+motorL = GPIO.PWM(13, 60)
+motorL.start(0)
+################FIN NUESTRO CODIGO
+
 # -------- Main Program Loop -----------
 while done==False:
+    motorR = GPIO.PWM(15, 60)
+    motorL = GPIO.PWM(13, 60)
     # EVENT PROCESSING STEP
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
@@ -92,12 +107,38 @@ while done==False:
         axes = joystick.get_numaxes()
         textPrint.print(screen, "Number of axes: {}".format(axes) )
         textPrint.indent()
+
+        
         
         for i in range( axes ):
             axis = joystick.get_axis( i )
             textPrint.print(screen, "Axis {} value: {:>6.3f}".format(i, axis) )
         textPrint.unindent()
-            
+
+        ################NUESTRO CODIGO
+        axisLeft = -joystick.get_axis( 1 )
+        axisRight = joystick.get_axis( 2 ) #cambiar si no rinde
+        
+        global baseDuty
+        
+        if axisLeft <= 0:
+            baseDuty= 0
+        else :
+            baseDuty= axisLeft*30
+        print(baseDuty)
+        motorL.ChangeDutyCycle(baseDuty)
+        motorR.ChangeDutyCycle(baseDuty)
+
+        if axisRight != 0:
+            if axisRight >0 :
+                motorL.ChangeDutyCycle(baseDuty+axisRight*10)
+                print(baseDuty+axisRight*10)
+            else :
+                motorR.ChangeDutyCycle(baseDuty-axisRight*10)
+                print(baseDuty-axisRight*10)
+        
+        ###############FIN NUESTRO CODIGO
+                
         buttons = joystick.get_numbuttons()
         textPrint.print(screen, "Number of buttons: {}".format(buttons) )
         textPrint.indent()
@@ -106,6 +147,14 @@ while done==False:
             button = joystick.get_button( i )
             textPrint.print(screen, "Button {:>2} value: {}".format(i,button) )
         textPrint.unindent()
+
+        ################NUESTRO CODIGO
+        buttonO = joystick.get_button( 2 )
+        if buttonO == 1:
+            done = True
+        ###############FIN NUESTRO CODIGO
+        
+        
             
         # Hat switch. All or nothing for direction, not like joysticks.
         # Value comes back in an array.
@@ -132,4 +181,8 @@ while done==False:
 # Close the window and quit.
 # If you forget this line, the program will 'hang'
 # on exit if running from IDLE.
+print('killing')
+motorL.stop()
+motorR.stop()
+GPIO.cleanup()
 pygame.quit ()
