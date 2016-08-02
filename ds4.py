@@ -1,4 +1,5 @@
 import pygame
+import RPi.GPIO as GPIO
 
 BLACK    = (   0,   0,   0)
 WHITE    = ( 255, 255, 255)
@@ -13,6 +14,10 @@ class TextPrint:
         textBitmap = self.font.render(textString, True, BLACK)
         screen.blit(textBitmap, [self.x, self.y])
         self.y += self.line_height
+
+    def changePwm(self, motor, pwm):
+        motor.ChangeDutyCycle(pwm)
+
 
     def reset(self):
         self.x = 10
@@ -36,13 +41,43 @@ pygame.joystick.init()
 textPrint = TextPrint()
 
 # -------- WHERE THE MAGIC HAPPENS ----------- #
-while done==False:
-    # EVENT PROCESSING STEP
-    for event in pygame.event.get(): # User did something
-        if event.type == pygame.QUIT: # If user clicked close
-            done=True # Flag that we are done so we exit this loop
+# ------------- MY FUNCTIONS ----------------- #
+def configureGpio():
+    right = 15 #Derecha   15 (->)
+    left = 13  #Izquierda 13 (<-)
+    freq = 60
+    GPIO.setmode(GPIO.BOARD)
 
-    # DRAWING STEP
+    GPIO.setup(right, GPIO.OUT)
+    motorR = GPIO.PWM(right, freq)
+    motorR.start(0)
+
+    GPIO.setup(left, GPIO.OUT)
+    motorL = GPIO.PWM(left, freq)
+    motorL.start(0)
+
+    print("pines {} and {} set up for PWM at {}Hz\n".format(right, left, freq))
+    return motorR, motorL
+
+def kill():
+    motorR.stop()
+    motorL.stop()
+    GPIO.cleanup()
+    pygame.joystick.quit()
+    pygame.quit()
+    print('killing succesful')
+
+# ---------- FUNCTION EXCECUTION ------------- #
+motorR, motorL = configureGpio()
+# --------------- MAIN LOOP ------------------ #
+while done==False:
+    
+    # Check for exit |X|
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+
+    # Drawing Step
     screen.fill(WHITE)
     textPrint.reset()
 
@@ -56,12 +91,33 @@ while done==False:
     textPrint.print(screen, "Axes" )
     textPrint.indent()
 
-    axisL = joystick.get_axis( 1 )
-    axisR = joystick.get_axis( 2 )
+    axisL = -joystick.get_axis( 1 )   #  _0 : 1^
+    axisR = joystick.get_axis( 2 )    # <-1 : 1>
+    if axisL <= 0:
+        axisL = 0
+    
     textPrint.print(screen, "Axis L value: {:>6.3f}".format(axisL))
     textPrint.print(screen, "Axis R value: {:>6.3f}".format(axisR)) 
     textPrint.unindent()
+    
+    ##### CALCULATE AND CHANGE THE PWM OF THE MOTORS ---
+    baseDuty = axisL * 15.0
+    rightCycle = baseDuty
+    leftCycle = baseDuty
 
+    #axisRight > 0 when turning right and < 0 when turning left
+    #RIGHT -> leftCycle  += (+)
+    #      -> rightCycle -= (+)
+    #
+    #LEFT  -> leftCycle  += (-)
+    #      -> rightCycle -= (-)
+    leftCycle += (baseDuty*axisR)/2
+    rightCycle -= (baseDuty*axisR)/2
+        
+    textPrint.changePwm(motorL, leftCycle)
+    textPrint.changePwm(motorR, rightCycle)
+    #### -----------------------------------------------
+    
     # Buttons
     textPrint.print(screen, "Buttons" )
     textPrint.indent()
@@ -69,9 +125,11 @@ while done==False:
     button0 = joystick.get_button( 2 )
     textPrint.print(screen, "Button 0 value: {}".format(button0))
     textPrint.unindent()
+    if button0 == 1:
+        done = True
 
     # S'more pygame magic
     pygame.display.flip()
     clock.tick(20)
 
-pygame.quit ()
+kill()
