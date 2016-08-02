@@ -15,10 +15,6 @@ class TextPrint:
         screen.blit(textBitmap, [self.x, self.y])
         self.y += self.line_height
 
-    def changePwm(self, motor, pwm):
-        motor.ChangeDutyCycle(pwm)
-
-
     def reset(self):
         self.x = 10
         self.y = 10
@@ -42,6 +38,17 @@ textPrint = TextPrint()
 
 # -------- WHERE THE MAGIC HAPPENS ----------- #
 # ------------- MY FUNCTIONS ----------------- #
+class GpioAccess:
+    def __init__(self, motorL, motorR):
+        self.motorL = motorL
+        self.motorR = motorR
+
+    def changeLPwm(self, pwm):
+        self.motorL.ChangeDutyCycle(pwm)
+
+    def changeRPwm(self, pwm):
+        self.motorR.ChangeDutyCycle(pwm)
+
 def configureGpio():
     right = 15 #Derecha   15 (->)
     left = 13  #Izquierda 13 (<-)
@@ -69,6 +76,7 @@ def kill():
 
 # ---------- FUNCTION EXCECUTION ------------- #
 motorR, motorL = configureGpio()
+gpioaccess = GpioAccess(motorL, motorR)
 # --------------- MAIN LOOP ------------------ #
 while done==False:
     
@@ -114,8 +122,8 @@ while done==False:
     leftCycle += (baseDuty*axisR)/2
     rightCycle -= (baseDuty*axisR)/2
         
-    textPrint.changePwm(motorL, leftCycle)
-    textPrint.changePwm(motorR, rightCycle)
+    gpioaccess.changeLPwm(leftCycle)
+    gpioaccess.changeRPwm(rightCycle)
     #### -----------------------------------------------
     
     # Buttons
