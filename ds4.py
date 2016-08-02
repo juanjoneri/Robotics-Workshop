@@ -26,11 +26,11 @@ class TextPrint:
     def unindent(self):
         self.x -= 10
 
-# pygame rubish
+# pygame rubbish
 pygame.init()
 size = [360, 120]
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Adrometeo")
+pygame.display.set_caption("Adrometeo I")
 done = False
 clock = pygame.time.Clock()
 pygame.joystick.init()
@@ -72,7 +72,7 @@ def kill():
     GPIO.cleanup()
     pygame.joystick.quit()
     pygame.quit()
-    print('killing succesful')
+    print('killing successful')
 
 # ---------- FUNCTION EXCECUTION ------------- #
 motorR, motorL = configureGpio()
@@ -85,7 +85,7 @@ while done==False:
         if event.type == pygame.QUIT:
             done = True
 
-    # Drawing Step
+    # Redraw screen
     screen.fill(WHITE)
     textPrint.reset()
 
