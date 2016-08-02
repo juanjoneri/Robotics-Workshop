@@ -27,9 +27,16 @@ def configureGpio():
     print("pines {} and {} set up for PWM at {}Hz\n".format(right, left, freq))
     return motorR, motorL
 
-def configureController():
+def configurePigame():
     pygame.init()
+    ###############################
+    screen = pygame.display.set_mode([500, 500])
+    pygame.display.set_caption("My Game")
+    clock = pygame.time.Clock()
+    ###############################
     pygame.joystick.init()
+
+def configureController():    
 
     joystick_count = pygame.joystick.get_count()
     print("Number of joysticks: {}".format(joystick_count) )
@@ -43,6 +50,11 @@ def configureController():
     buttons = joystick.get_numbuttons()
     print("Number of buttons: {}".format(buttons) )
 
+    ###############################
+    for i in range( buttons ):
+        button = joystick.get_button( i )
+        print("Button {:>2} value: {}".format(i,button) )
+    ###############################
     return joystick
 
 def updateMotors(axisLeft, axisRight, motorR, motorL):
@@ -67,28 +79,29 @@ def updateMotors(axisLeft, axisRight, motorR, motorL):
 if __name__ == '__main__':
     #SETUP
     motorR, motorL = configureGpio()
-    joystick = configureController()
+    configurePigame()
     analogLPlace, analogRPlace = 1, 2
-    btnOPlace = 2
     print("\nSetup complete")
-
+    
     #Main Loop
     running = True
-    refreshRate = 30
-    while running:
-        axisLeft = -joystick.get_axis( analogLPlace ) #  _0 : 1^
-        axisRight = joystick.get_axis( analogRPlace ) # <-1 : 1>
-
-        updateMotors(axisLeft, axisRight, motorR, motorL)
-
-        btnO = joystick.get_button( btnOPlace )
-        joystick_count = pygame.joystick.get_count()
-        if btnO == 1 | joystick_count < 1:
-            #O pressed or connection lost QUIT
-            running = False
-
-        time.sleep(1/refreshRate)
-
-    #Finalmente cerramos y nos vamos
-    killClicked()
-    print("Killing complete")
+    refreshRate = 20
+    try:
+        while running == True:
+            joystick = configureController()
+            axisLeft = -joystick.get_axis( 1 ) #  _0 : 1^
+            axisRight = joystick.get_axis( 2 ) # <-1 : 1>
+            btnO = joystick.get_button( 2 )
+            
+            updateMotors(axisLeft, axisRight, motorR, motorL)            
+            
+            joystick_count = pygame.joystick.get_count()
+            if btnO == 1 | joystick_count < 1:
+                #O pressed or connection lost QUIT
+                running = False
+            
+            time.sleep(1/refreshRate)
+    except KeyboardInterrupt:
+        #Finalmente cerramos y nos vamos
+        killClicked()
+        print("THE END")

@@ -37,7 +37,7 @@ def configureGpio():
     
     GPIO.setup(15, GPIO.OUT)
     motor = GPIO.PWM(15, 60)
-    motor.start(0)
+    motor.start(20)
     
     GPIO.setup(36, GPIO.OUT)
     servo = GPIO.PWM(36, 50)
