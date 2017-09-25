@@ -7,4 +7,4 @@ The goal for this course was to introduce advanced high school students to core 
 The project consisted of building from scratch a remote controlled car powered by a **Raspberry Pi 3**. During the course of 3 months we designed and built the circuit for the car, and wrote the code for its control via Bluetooth with a Dualshock PS4 controller.
 
 ### Final Product!
-<img src="http://juanjoneri.me/img/Auto/Auto.png"/>
+<img src="http://juanjoneri.com/img/Auto/Auto.png"/>
